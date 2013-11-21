@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'spork'
+require 'Spork'
 #uncomment the following line to use spork with the debugger
 #require 'spork/ext/ruby-debug'
 
@@ -12,11 +12,14 @@ Spork.prefork do
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
-require 'rspec/autorun'
+#require 'rspec/autorun'
+require 'factory_girl'
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
+
+ActiveRecord::Migration.check_pending! if defined?(ActiveRecord::Migration)
 
 RSpec.configure do |config|
   # ## Mock Framework
@@ -47,6 +50,8 @@ RSpec.configure do |config|
   config.order = "random"
   config.include Capybara::DSL
 
+  config.include FactoryGirl::Syntax::Methods
+
   config.before(:suite) do
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
@@ -59,15 +64,18 @@ RSpec.configure do |config|
   config.after(:each) do
     DatabaseCleaner.clean
   end
+
 end
 end
 
 Spork.each_run do
   # This code will be run each time you run your specs.
 
+    FactoryGirl.reload
 end
 
 # --- Instructions ---
+
 # Sort the contents of this file into a Spork.prefork and a Spork.each_run
 # block.
 #
